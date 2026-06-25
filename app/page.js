@@ -60,7 +60,7 @@ export default function Home() {
     const { error } = await supabase.from("transactions").insert([
       {
         title: formData.title,
-        amount: Number(formData.amount),
+        amount: Math.abs(Number(formData.amount)),
         type: formData.type,
         category: formData.category,
         transaction_date: formData.date,
@@ -99,12 +99,12 @@ export default function Home() {
   }
 
   const totalIncome = transactions
-    .filter((transaction) => transaction.type === "income")
-    .reduce((total, transaction) => total + Number(transaction.amount), 0);
+  .filter((transaction) => transaction.type?.toLowerCase() === "income")
+  .reduce((total, transaction) => total + Math.abs(Number(transaction.amount)), 0);
 
   const totalExpense = transactions
-    .filter((transaction) => transaction.type === "expense")
-    .reduce((total, transaction) => total + Number(transaction.amount), 0);
+  .filter((transaction) => transaction.type?.toLowerCase() === "expense")
+  .reduce((total, transaction) => total + Math.abs(Number(transaction.amount)), 0);
 
   const balance = totalIncome - totalExpense;
 
