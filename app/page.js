@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { supabase } from "../lib/supabaseClient";
 
 export default function Home() {
   const today = new Date().toISOString().split("T")[0];
 
   const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(false);
+
   const [formData, setFormData] = useState({
     title: "",
     amount: "",
@@ -15,16 +18,23 @@ export default function Home() {
   });
 
   useEffect(() => {
-    const savedTransactions = localStorage.getItem("transactions");
-
-    if (savedTransactions) {
-      setTransactions(JSON.parse(savedTransactions));
-    }
+    fetchTransactions();
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem("transactions", JSON.stringify(transactions));
-  }, [transactions]);
+  async function fetchTransactions() {
+    const { data, error } = await supabase
+      .from("transactions")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Fetch error:", error);
+      alert("Failed to load transactions.");
+      return;
+    }
+
+    setTransactions(data || []);
+  }
 
   function handleChange(event) {
     const { name, value } = event.target;
@@ -35,53 +45,66 @@ export default function Home() {
     });
   }
 
-  function handleSubmit(event) {
-  if (event) {
-    event.preventDefault();
-  }
+  async function handleSubmit(event) {
+    if (event) {
+      event.preventDefault();
+    }
 
-  alert("Button clicked");
+    if (!formData.title || !formData.amount || !formData.date) {
+      alert("Please fill in all fields.");
+      return;
+    }
 
-  if (!formData.title || !formData.amount || !formData.date) {
-    alert("Please fill in all fields.");
-    return;
-  }
+    setLoading(true);
 
-    const newTransaction = {
-      id: Date.now(),
-      title: formData.title,
-      amount: Number(formData.amount),
-      type: formData.type,
-      category: formData.category,
-      date: formData.date,
-    };
+    const { error } = await supabase.from("transactions").insert([
+      {
+        title: formData.title,
+        amount: Number(formData.amount),
+        type: formData.type,
+        category: formData.category,
+        transaction_date: formData.date,
+      },
+    ]);
 
-    setTransactions([newTransaction, ...transactions]);
+    setLoading(false);
+
+    if (error) {
+      console.error("Insert error:", error);
+      alert("Failed to add transaction.");
+      return;
+    }
 
     setFormData({
-    title: "",
-    amount: "",
-    type: "expense",
-    category: "Food",
-    date: today,
+      title: "",
+      amount: "",
+      type: "expense",
+      category: "Food",
+      date: today,
     });
+
+    fetchTransactions();
   }
 
-  function deleteTransaction(id) {
-    const updatedTransactions = transactions.filter(
-      (transaction) => transaction.id !== id
-    );
+  async function deleteTransaction(id) {
+    const { error } = await supabase.from("transactions").delete().eq("id", id);
 
-    setTransactions(updatedTransactions);
+    if (error) {
+      console.error("Delete error:", error);
+      alert("Failed to delete transaction.");
+      return;
+    }
+
+    fetchTransactions();
   }
 
   const totalIncome = transactions
     .filter((transaction) => transaction.type === "income")
-    .reduce((total, transaction) => total + transaction.amount, 0);
+    .reduce((total, transaction) => total + Number(transaction.amount), 0);
 
   const totalExpense = transactions
     .filter((transaction) => transaction.type === "expense")
-    .reduce((total, transaction) => total + transaction.amount, 0);
+    .reduce((total, transaction) => total + Number(transaction.amount), 0);
 
   const balance = totalIncome - totalExpense;
 
@@ -175,8 +198,13 @@ export default function Home() {
               onChange={handleChange}
             />
 
-            <button type="button" className="submitBtn" onClick={handleSubmit}>
-              Add Transaction
+            <button
+              type="button"
+              className="submitBtn"
+              onClick={handleSubmit}
+              disabled={loading}
+            >
+              {loading ? "Adding..." : "Add Transaction"}
             </button>
           </div>
         </div>
@@ -195,7 +223,7 @@ export default function Home() {
                   <div>
                     <h3>{transaction.title}</h3>
                     <p>
-                      {transaction.category} • {transaction.date}
+                      {transaction.category} • {transaction.transaction_date}
                     </p>
                   </div>
 
@@ -206,7 +234,7 @@ export default function Home() {
                       }
                     >
                       {transaction.type === "income" ? "+" : "-"} RM{" "}
-                      {transaction.amount.toFixed(2)}
+                      {Number(transaction.amount).toFixed(2)}
                     </strong>
 
                     <button
@@ -242,7 +270,7 @@ function getTopCategory(transactions) {
       categoryTotals[transaction.category] = 0;
     }
 
-    categoryTotals[transaction.category] += transaction.amount;
+    categoryTotals[transaction.category] += Number(transaction.amount);
   });
 
   let topCategory = "";
