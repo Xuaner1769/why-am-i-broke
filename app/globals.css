@@ -248,4 +248,72 @@ button:hover {
     width: 100%;
     justify-content: space-between;
   }
+
+
+
+  .authWrapper {
+  min-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.authCard {
+  width: 100%;
+  max-width: 460px;
+  background: #111827;
+  border: 1px solid #1f2937;
+  border-radius: 24px;
+  padding: 30px;
+}
+
+.authCard h1 {
+  font-size: 46px;
+  margin: 10px 0;
+}
+
+.authTabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 24px 0;
+}
+
+.authTabs button {
+  background: #1f2937;
+  color: #e5e7eb;
+}
+
+.authTabs .activeTab {
+  background: #38bdf8;
+  color: #082f49;
+}
+
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #111827;
+  border: 1px solid #1f2937;
+  border-radius: 18px;
+  padding: 14px 18px;
+  margin-bottom: 24px;
+}
+
+.topBar p {
+  margin: 0;
+  color: #cbd5e1;
+}
+
+.logoutBtn {
+  margin: 0;
+  background: #1f2937;
+  color: #e5e7eb;
+  padding: 10px 14px;
+}
+
+.logoutBtn:hover {
+  background: #ef4444;
+  color: white;
+}
 }

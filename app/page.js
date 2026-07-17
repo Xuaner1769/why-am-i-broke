@@ -6,6 +6,13 @@ import { supabase } from "../lib/supabaseClient";
 export default function Home() {
   const today = new Date().toISOString().split("T")[0];
 
+  const [user, setUser] = useState(null);
+  const [authMode, setAuthMode] = useState("login");
+  const [authData, setAuthData] = useState({
+    email: "",
+    password: "",
+  });
+
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -18,13 +25,90 @@ export default function Home() {
   });
 
   useEffect(() => {
-    fetchTransactions();
+    checkUser();
+
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setUser(session?.user || null);
+
+        if (session?.user) {
+          fetchTransactions(session.user.id);
+        } else {
+          setTransactions([]);
+        }
+      }
+    );
+
+    return () => {
+      listener.subscription.unsubscribe();
+    };
   }, []);
 
-  async function fetchTransactions() {
+  async function checkUser() {
+    const { data } = await supabase.auth.getUser();
+
+    if (data?.user) {
+      setUser(data.user);
+      fetchTransactions(data.user.id);
+    }
+  }
+
+  function handleAuthChange(event) {
+    const { name, value } = event.target;
+
+    setAuthData({
+      ...authData,
+      [name]: value,
+    });
+  }
+
+  async function handleRegister() {
+    if (!authData.email || !authData.password) {
+      alert("Please enter email and password.");
+      return;
+    }
+
+    const { error } = await supabase.auth.signUp({
+      email: authData.email.trim(),
+      password: authData.password.trim(),
+    });
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    alert("Account created. Please check your email if confirmation is required.");
+  }
+
+  async function handleLogin() {
+    if (!authData.email || !authData.password) {
+      alert("Please enter email and password.");
+      return;
+    }
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email: authData.email.trim(),
+      password: authData.password.trim(),
+    });
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+  }
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    setUser(null);
+    setTransactions([]);
+  }
+
+  async function fetchTransactions(userId) {
     const { data, error } = await supabase
       .from("transactions")
       .select("*")
+      .eq("user_id", userId)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -50,6 +134,11 @@ export default function Home() {
       event.preventDefault();
     }
 
+    if (!user) {
+      alert("Please login first.");
+      return;
+    }
+
     if (!formData.title || !formData.amount || !formData.date) {
       alert("Please fill in all fields.");
       return;
@@ -61,9 +150,10 @@ export default function Home() {
       {
         title: formData.title,
         amount: Math.abs(Number(formData.amount)),
-        type: formData.type,
+        type: formData.type.toLowerCase(),
         category: formData.category,
         transaction_date: formData.date,
+        user_id: user.id,
       },
     ]);
 
@@ -83,11 +173,20 @@ export default function Home() {
       date: today,
     });
 
-    fetchTransactions();
+    fetchTransactions(user.id);
   }
 
   async function deleteTransaction(id) {
-    const { error } = await supabase.from("transactions").delete().eq("id", id);
+    if (!user) {
+      alert("Please login first.");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("transactions")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", user.id);
 
     if (error) {
       console.error("Delete error:", error);
@@ -95,23 +194,96 @@ export default function Home() {
       return;
     }
 
-    fetchTransactions();
+    fetchTransactions(user.id);
   }
 
   const totalIncome = transactions
-  .filter((transaction) => transaction.type?.toLowerCase() === "income")
-  .reduce((total, transaction) => total + Math.abs(Number(transaction.amount)), 0);
+    .filter((transaction) => transaction.type?.toLowerCase() === "income")
+    .reduce((total, transaction) => total + Math.abs(Number(transaction.amount)), 0);
 
   const totalExpense = transactions
-  .filter((transaction) => transaction.type?.toLowerCase() === "expense")
-  .reduce((total, transaction) => total + Math.abs(Number(transaction.amount)), 0);
+    .filter((transaction) => transaction.type?.toLowerCase() === "expense")
+    .reduce((total, transaction) => total + Math.abs(Number(transaction.amount)), 0);
 
   const balance = totalIncome - totalExpense;
 
   const topCategory = getTopCategory(transactions);
 
+  if (!user) {
+    return (
+      <main className="page">
+        <section className="authWrapper">
+          <div className="authCard">
+            <p className="tag">Personal Finance Tracker</p>
+            <h1>WhyAmIBroke?</h1>
+            <p className="heroText">
+              Login to track where your money disappeared.
+            </p>
+
+            <div className="authTabs">
+              <button
+                className={authMode === "login" ? "activeTab" : ""}
+                onClick={() => setAuthMode("login")}
+              >
+                Login
+              </button>
+
+              <button
+                className={authMode === "register" ? "activeTab" : ""}
+                onClick={() => setAuthMode("register")}
+              >
+                Register
+              </button>
+            </div>
+
+            <div className="transactionForm">
+              <label>Email</label>
+              <input
+                type="email"
+                name="email"
+                placeholder="your@email.com"
+                value={authData.email}
+                onChange={handleAuthChange}
+              />
+
+              <label>Password</label>
+              <input
+                type="password"
+                name="password"
+                placeholder="Minimum 6 characters"
+                value={authData.password}
+                onChange={handleAuthChange}
+              />
+
+              {authMode === "login" ? (
+                <button type="button" className="submitBtn" onClick={handleLogin}>
+                  Login
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="submitBtn"
+                  onClick={handleRegister}
+                >
+                  Register
+                </button>
+              )}
+            </div>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className="page">
+      <section className="topBar">
+        <p>Logged in as: {user.email}</p>
+        <button className="logoutBtn" onClick={handleLogout}>
+          Logout
+        </button>
+      </section>
+
       <section className="hero">
         <div>
           <p className="tag">Personal Finance Tracker</p>
@@ -234,7 +406,7 @@ export default function Home() {
                       }
                     >
                       {transaction.type === "income" ? "+" : "-"} RM{" "}
-                      {Number(transaction.amount).toFixed(2)}
+                      {Math.abs(Number(transaction.amount)).toFixed(2)}
                     </strong>
 
                     <button
@@ -256,7 +428,7 @@ export default function Home() {
 
 function getTopCategory(transactions) {
   const expenses = transactions.filter(
-    (transaction) => transaction.type === "expense"
+    (transaction) => transaction.type?.toLowerCase() === "expense"
   );
 
   if (expenses.length === 0) {
@@ -270,7 +442,7 @@ function getTopCategory(transactions) {
       categoryTotals[transaction.category] = 0;
     }
 
-    categoryTotals[transaction.category] += Number(transaction.amount);
+    categoryTotals[transaction.category] += Math.abs(Number(transaction.amount));
   });
 
   let topCategory = "";
