@@ -17,6 +17,8 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
 
+  const [selectedMonth, setSelectedMonth] = useState("");
+
   const [formData, setFormData] = useState({
     title: "",
     amount: "",
@@ -110,6 +112,7 @@ export default function Home() {
       .from("transactions")
       .select("*")
       .eq("user_id", userId)
+      .order("transaction_date", { ascending: false })
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -236,17 +239,33 @@ export default function Home() {
     fetchTransactions(user.id);
   }
 
-  const totalIncome = transactions
+  const filteredTransactions = selectedMonth
+    ? transactions.filter((transaction) => {
+        return transaction.transaction_date?.slice(0, 7) === selectedMonth;
+      })
+    : transactions;
+
+  const overallIncome = transactions
     .filter((transaction) => transaction.type?.toLowerCase() === "income")
     .reduce((total, transaction) => total + Math.abs(Number(transaction.amount)), 0);
 
-  const totalExpense = transactions
+  const overallExpense = transactions
     .filter((transaction) => transaction.type?.toLowerCase() === "expense")
     .reduce((total, transaction) => total + Math.abs(Number(transaction.amount)), 0);
 
-  const balance = totalIncome - totalExpense;
+  const overallBalance = overallIncome - overallExpense;
 
-  const topCategory = getTopCategory(transactions);
+  const historyIncome = filteredTransactions
+    .filter((transaction) => transaction.type?.toLowerCase() === "income")
+    .reduce((total, transaction) => total + Math.abs(Number(transaction.amount)), 0);
+
+  const historyExpense = filteredTransactions
+    .filter((transaction) => transaction.type?.toLowerCase() === "expense")
+    .reduce((total, transaction) => total + Math.abs(Number(transaction.amount)), 0);
+
+  const historyBalance = historyIncome - historyExpense;
+
+  const topCategory = getTopCategory(filteredTransactions);
 
   if (!user) {
     return (
@@ -333,26 +352,26 @@ export default function Home() {
         </div>
 
         <div className="heroCard">
-          <p>This Month</p>
-          <h2>RM {balance.toFixed(2)}</h2>
-          <span>Current balance</span>
+          <p>All Time</p>
+          <h2>RM {overallBalance.toFixed(2)}</h2>
+          <span>Overall balance</span>
         </div>
       </section>
 
       <section className="statsGrid">
         <div className="statCard">
-          <p>Total Income</p>
-          <h2>RM {totalIncome.toFixed(2)}</h2>
+          <p>{selectedMonth ? `${formatMonth(selectedMonth)} Income` : "Total Income"}</p>
+          <h2>RM {historyIncome.toFixed(2)}</h2>
         </div>
 
         <div className="statCard">
-          <p>Total Spent</p>
-          <h2>RM {totalExpense.toFixed(2)}</h2>
+          <p>{selectedMonth ? `${formatMonth(selectedMonth)} Spent` : "Total Spent"}</p>
+          <h2>RM {historyExpense.toFixed(2)}</h2>
         </div>
 
         <div className="statCard">
-          <p>Top Spending</p>
-          <h2>{topCategory}</h2>
+          <p>{selectedMonth ? `${formatMonth(selectedMonth)} Net` : "Net Amount"}</p>
+          <h2>RM {historyBalance.toFixed(2)}</h2>
         </div>
       </section>
 
@@ -446,15 +465,44 @@ export default function Home() {
         </div>
 
         <div className="historyCard">
-          <h2>Transaction History</h2>
+          <div className="historyHeader">
+            <div>
+              <h2>Transaction History</h2>
+              <p className="historySubtitle">
+                {selectedMonth
+                  ? `Showing ${formatMonth(selectedMonth)} records`
+                  : "Showing all transaction records"}
+              </p>
+            </div>
 
-          {transactions.length === 0 ? (
+            <div className="historyFilter">
+              <input
+                type="month"
+                value={selectedMonth}
+                onChange={(event) => setSelectedMonth(event.target.value)}
+              />
+
+              {selectedMonth && (
+                <button
+                  type="button"
+                  className="clearFilterBtn"
+                  onClick={() => setSelectedMonth("")}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          </div>
+
+          {filteredTransactions.length === 0 ? (
             <p className="emptyText">
-              No transactions yet. Add one to find out why you are broke.
+              {selectedMonth
+                ? "No transactions found for this month."
+                : "No transactions yet. Add one to find out why you are broke."}
             </p>
           ) : (
             <div className="transactionList">
-              {transactions.map((transaction) => (
+              {filteredTransactions.map((transaction) => (
                 <div className="transactionItem" key={transaction.id}>
                   <div>
                     <h3>{transaction.title}</h3>
@@ -495,6 +543,20 @@ export default function Home() {
       </section>
     </main>
   );
+}
+
+function formatMonth(monthValue) {
+  if (!monthValue) {
+    return "";
+  }
+
+  const [year, month] = monthValue.split("-");
+  const date = new Date(Number(year), Number(month) - 1);
+
+  return date.toLocaleDateString("en-MY", {
+    month: "long",
+    year: "numeric",
+  });
 }
 
 function getTopCategory(transactions) {
