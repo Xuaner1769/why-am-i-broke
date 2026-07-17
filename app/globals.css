@@ -316,4 +316,31 @@ button:hover {
   background: #ef4444;
   color: white;
 }
+.editBtn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-right: 8px;
+}
+
+.cancelBtn {
+  background: #334155;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.editBtn:hover {
+  background: #1d4ed8;
+}
+
+.cancelBtn:hover {
+  background: #475569;
+}
 }

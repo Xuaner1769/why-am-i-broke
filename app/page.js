@@ -15,6 +15,7 @@ export default function Home() {
 
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -78,7 +79,7 @@ export default function Home() {
       return;
     }
 
-    alert("Account created. Please check your email if confirmation is required.");
+    alert("Account created. You can now login.");
   }
 
   async function handleLogin() {
@@ -146,22 +147,42 @@ export default function Home() {
 
     setLoading(true);
 
-    const { error } = await supabase.from("transactions").insert([
-      {
-        title: formData.title,
-        amount: Math.abs(Number(formData.amount)),
-        type: formData.type.toLowerCase(),
-        category: formData.category,
-        transaction_date: formData.date,
-        user_id: user.id,
-      },
-    ]);
+    let error;
+
+    if (editingId) {
+      const result = await supabase
+        .from("transactions")
+        .update({
+          title: formData.title,
+          amount: Math.abs(Number(formData.amount)),
+          type: formData.type.toLowerCase(),
+          category: formData.category,
+          transaction_date: formData.date,
+        })
+        .eq("id", editingId)
+        .eq("user_id", user.id);
+
+      error = result.error;
+    } else {
+      const result = await supabase.from("transactions").insert([
+        {
+          title: formData.title,
+          amount: Math.abs(Number(formData.amount)),
+          type: formData.type.toLowerCase(),
+          category: formData.category,
+          transaction_date: formData.date,
+          user_id: user.id,
+        },
+      ]);
+
+      error = result.error;
+    }
 
     setLoading(false);
 
     if (error) {
-      console.error("Insert error:", error);
-      alert("Failed to add transaction.");
+      console.error("Save error:", error);
+      alert("Failed to save transaction.");
       return;
     }
 
@@ -173,7 +194,25 @@ export default function Home() {
       date: today,
     });
 
+    setEditingId(null);
     fetchTransactions(user.id);
+  }
+
+  function startEdit(transaction) {
+    setEditingId(transaction.id);
+
+    setFormData({
+      title: transaction.title,
+      amount: Math.abs(Number(transaction.amount)),
+      type: transaction.type,
+      category: transaction.category,
+      date: transaction.transaction_date,
+    });
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   }
 
   async function deleteTransaction(id) {
@@ -319,7 +358,7 @@ export default function Home() {
 
       <section className="contentGrid">
         <div className="formCard">
-          <h2>Add Transaction</h2>
+          <h2>{editingId ? "Edit Transaction" : "Add Transaction"}</h2>
 
           <div className="transactionForm">
             <label>Title</label>
@@ -376,8 +415,33 @@ export default function Home() {
               onClick={handleSubmit}
               disabled={loading}
             >
-              {loading ? "Adding..." : "Add Transaction"}
+              {loading
+                ? editingId
+                  ? "Updating..."
+                  : "Adding..."
+                : editingId
+                ? "Update Transaction"
+                : "Add Transaction"}
             </button>
+
+            {editingId && (
+              <button
+                type="button"
+                className="cancelBtn"
+                onClick={() => {
+                  setEditingId(null);
+                  setFormData({
+                    title: "",
+                    amount: "",
+                    type: "expense",
+                    category: "Food",
+                    date: today,
+                  });
+                }}
+              >
+                Cancel Edit
+              </button>
+            )}
           </div>
         </div>
 
@@ -408,6 +472,13 @@ export default function Home() {
                       {transaction.type === "income" ? "+" : "-"} RM{" "}
                       {Math.abs(Number(transaction.amount)).toFixed(2)}
                     </strong>
+
+                    <button
+                      className="editBtn"
+                      onClick={() => startEdit(transaction)}
+                    >
+                      Edit
+                    </button>
 
                     <button
                       className="deleteBtn"
