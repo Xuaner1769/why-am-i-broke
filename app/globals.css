@@ -1,4 +1,5 @@
 @import "./styles/navbar.css";
+
 * {
   box-sizing: border-box;
 }
@@ -34,34 +35,34 @@ body {
 }
 
 .hero h1 {
-  font-size: 64px;
   margin: 0;
+  font-size: 64px;
   letter-spacing: -2px;
 }
 
 .heroText {
+  max-width: 520px;
   color: #94a3b8;
   font-size: 18px;
-  max-width: 520px;
 }
 
 .heroCard {
-  background: linear-gradient(135deg, #22c55e, #14b8a6);
-  color: #052e16;
+  min-width: 260px;
   padding: 30px;
   border-radius: 24px;
-  min-width: 260px;
+  background: linear-gradient(135deg, #22c55e, #14b8a6);
+  color: #052e16;
   box-shadow: 0 20px 50px rgba(20, 184, 166, 0.2);
 }
 
 .heroCard p {
   margin: 0;
-  font-weight: bold;
+  font-weight: 700;
 }
 
 .heroCard h2 {
-  font-size: 42px;
   margin: 10px 0;
+  font-size: 42px;
 }
 
 .heroCard span {
@@ -70,18 +71,28 @@ body {
 
 .statsGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: stretch;
   gap: 18px;
+  width: 100%;
   margin-bottom: 30px;
 }
 
 .statCard,
 .formCard,
 .historyCard {
-  background: #111827;
+  padding: 24px;
   border: 1px solid #1f2937;
   border-radius: 22px;
-  padding: 24px;
+  background: #111827;
+}
+
+.statCard {
+  min-width: 0;
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .statCard p {
@@ -96,7 +107,8 @@ body {
 
 .contentGrid {
   display: grid;
-  grid-template-columns: 380px 1fr;
+  grid-template-columns: 380px minmax(0, 1fr);
+  align-items: start;
   gap: 24px;
 }
 
@@ -111,14 +123,6 @@ form,
   flex-direction: column;
 }
 
-.submitBtn {
-  touch-action: manipulation;
-  cursor: pointer;
-  width: 100%;
-  position: relative;
-  z-index: 10;
-}
-
 label {
   margin-top: 14px;
   margin-bottom: 6px;
@@ -128,12 +132,12 @@ label {
 
 input,
 select {
-  background: #020617;
-  border: 1px solid #334155;
-  color: white;
   padding: 12px;
+  border: 1px solid #334155;
   border-radius: 12px;
   outline: none;
+  background: #020617;
+  color: #ffffff;
 }
 
 input:focus,
@@ -143,12 +147,12 @@ select:focus {
 
 button {
   margin-top: 18px;
-  border: none;
+  padding: 12px;
+  border: 0;
+  border-radius: 12px;
   background: #38bdf8;
   color: #082f49;
-  padding: 12px;
-  border-radius: 12px;
-  font-weight: bold;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -156,103 +160,32 @@ button:hover {
   background: #7dd3fc;
 }
 
+.submitBtn {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  touch-action: manipulation;
+}
+
+.cancelBtn {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #334155;
+  color: #ffffff;
+}
+
+.cancelBtn:hover {
+  background: #475569;
+}
+
 .emptyText {
   color: #94a3b8;
 }
 
-.transactionList {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
+/* Authentication */
 
-.transactionItem {
-  background: #020617;
-  border: 1px solid #1e293b;
-  border-radius: 16px;
-  padding: 16px;
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: center;
-}
-
-.transactionItem h3 {
-  margin: 0 0 6px;
-}
-
-.transactionItem p {
-  margin: 0;
-  color: #94a3b8;
-  font-size: 14px;
-}
-
-.transactionRight {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.income {
-  color: #22c55e;
-}
-
-.expense {
-  color: #f87171;
-}
-
-.deleteBtn {
-  margin: 0;
-  background: #1f2937;
-  color: #e5e7eb;
-  padding: 8px 10px;
-  font-size: 12px;
-}
-
-.deleteBtn:hover {
-  background: #ef4444;
-  color: white;
-}
-
-@media (max-width: 900px) {
-  .page {
-    padding: 20px;
-  }
-
-  .hero {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .hero h1 {
-    font-size: 44px;
-  }
-
-  .heroCard {
-    width: 100%;
-  }
-
-  .statsGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .contentGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .transactionItem {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .transactionRight {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-
-
-  .authWrapper {
+.authWrapper {
   min-height: 90vh;
   display: flex;
   align-items: center;
@@ -262,15 +195,15 @@ button:hover {
 .authCard {
   width: 100%;
   max-width: 460px;
-  background: #111827;
+  padding: 30px;
   border: 1px solid #1f2937;
   border-radius: 24px;
-  padding: 30px;
+  background: #111827;
 }
 
 .authCard h1 {
-  font-size: 46px;
   margin: 10px 0;
+  font-size: 46px;
 }
 
 .authTabs {
@@ -290,15 +223,18 @@ button:hover {
   color: #082f49;
 }
 
+/* Older top bar fallback */
+
 .topBar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #111827;
-  border: 1px solid #1f2937;
-  border-radius: 18px;
+  gap: 16px;
   padding: 14px 18px;
   margin-bottom: 24px;
+  border: 1px solid #1f2937;
+  border-radius: 18px;
+  background: #111827;
 }
 
 .topBar p {
@@ -308,146 +244,58 @@ button:hover {
 
 .logoutBtn {
   margin: 0;
+  padding: 10px 14px;
   background: #1f2937;
   color: #e5e7eb;
-  padding: 10px 14px;
 }
 
 .logoutBtn:hover {
   background: #ef4444;
-  color: white;
-}
-.editBtn {
-  background: #2563eb;
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 10px;
-  cursor: pointer;
-  margin-right: 8px;
+  color: #ffffff;
 }
 
-.cancelBtn {
-  background: #334155;
-  color: white;
-  border: none;
-  padding: 12px;
-  border-radius: 12px;
-  cursor: pointer;
-  margin-top: 10px;
-}
+/* Filter card fallback */
 
-.editBtn:hover {
-  background: #1d4ed8;
-}
-
-.cancelBtn:hover {
-  background: #475569;
-}
 .filterCard {
-  background: #111827;
-  border: 1px solid #1f2937;
-  border-radius: 22px;
-  padding: 22px 26px;
-  margin-bottom: 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  padding: 22px 26px;
+  margin-bottom: 24px;
+  border: 1px solid #1f2937;
+  border-radius: 22px;
+  background: #111827;
 }
 
 .filterLabel {
+  margin-bottom: 6px;
   color: #94a3b8;
   font-size: 14px;
-  margin-bottom: 6px;
 }
 
 .filterCard h2 {
-  color: #e5e7eb;
   margin: 0;
+  color: #e5e7eb;
 }
 
 .filterCard input {
-  background: #020617;
-  color: #e5e7eb;
+  padding: 12px 14px;
   border: 1px solid #334155;
   border-radius: 12px;
-  padding: 12px 14px;
+  background: #020617;
+  color: #e5e7eb;
   font-size: 15px;
 }
 
-@media (max-width: 700px) {
-  .filterCard {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+/* Spending chart */
 
-  .filterCard input {
-    width: 100%;
-  }
-}
-.historyHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.historySubtitle {
-  margin-top: 6px;
-  color: #94a3b8;
-  font-size: 14px;
-}
-
-.historyFilter {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.historyFilter input {
-  background: #020617;
-  color: #e5e7eb;
-  border: 1px solid #334155;
-  border-radius: 12px;
-  padding: 10px 12px;
-  font-size: 14px;
-}
-
-.clearFilterBtn {
-  background: #334155;
-  color: #e5e7eb;
-  border: none;
-  border-radius: 10px;
-  padding: 10px 14px;
-  cursor: pointer;
-}
-
-.clearFilterBtn:hover {
-  background: #475569;
-}
-
-@media (max-width: 700px) {
-  .historyHeader {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .historyFilter {
-    width: 100%;
-  }
-
-  .historyFilter input {
-    width: 100%;
-  }
-}
 .chartCard {
-  background: #111827;
-  border: 1px solid #1f2937;
-  border-radius: 24px;
   padding: 24px;
   margin-bottom: 24px;
+  border: 1px solid #1f2937;
+  border-radius: 24px;
+  background: #111827;
 }
 
 .chartHeader {
@@ -500,16 +348,16 @@ button:hover {
 .barTrack {
   width: 100%;
   height: 12px;
-  background: #020617;
-  border-radius: 999px;
   overflow: hidden;
   border: 1px solid #1f2937;
+  border-radius: 999px;
+  background: #020617;
 }
 
 .barFill {
   height: 100%;
-  background: linear-gradient(90deg, #38bdf8, #22c55e);
   border-radius: 999px;
+  background: linear-gradient(90deg, #38bdf8, #22c55e);
 }
 
 .categoryRow p {
@@ -517,4 +365,257 @@ button:hover {
   color: #94a3b8;
   font-size: 13px;
 }
+
+/* Transaction history */
+
+.historyHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.historyHeader h2 {
+  margin: 0 0 8px;
+}
+
+.historySubtitle {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.historyFilter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.historyFilter input {
+  padding: 10px 12px;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  background: #020617;
+  color: #e5e7eb;
+  font-size: 14px;
+}
+
+.clearFilterBtn {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #334155;
+  color: #e5e7eb;
+}
+
+.clearFilterBtn:hover {
+  background: #475569;
+}
+
+.transactionList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.transactionItem {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 28px;
+  padding: 20px 22px;
+  border: 1px solid #1e293b;
+  border-radius: 16px;
+  background: #020617;
+}
+
+.transactionItem h3 {
+  margin: 0 0 6px;
+}
+
+.transactionItem p {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.transactionRight {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 24px;
+  min-width: 0;
+}
+
+.transactionRight strong {
+  min-width: 130px;
+  margin: 0;
+  text-align: right;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.income {
+  color: #22c55e;
+}
+
+.expense {
+  color: #f87171;
+}
+
+.transactionActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.transactionActions .editBtn,
+.transactionActions .deleteBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 76px;
+  min-width: 76px;
+  height: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 14px;
+  white-space: nowrap;
+  line-height: 1;
+  font: inherit;
+  font-weight: 700;
+}
+
+.transactionActions .editBtn {
+  background: #38bdf8;
+  color: #082f49;
+}
+
+.transactionActions .editBtn:hover {
+  background: #22b3ee;
+}
+
+.transactionActions .deleteBtn {
+  background: #1f2937;
+  color: #f8fafc;
+}
+
+.transactionActions .deleteBtn:hover {
+  background: #2d3748;
+}
+
+/* Responsive */
+
+@media (max-width: 1100px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .transactionRight {
+    gap: 18px;
+  }
+
+  .transactionRight strong {
+    min-width: 120px;
+  }
+
+  .transactionActions {
+    gap: 10px;
+  }
+}
+
+@media (max-width: 900px) {
+  .page {
+    padding: 20px;
+  }
+
+  .hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .hero h1 {
+    font-size: 44px;
+  }
+
+  .heroCard {
+    width: 100%;
+  }
+
+  .contentGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .filterCard,
+  .historyHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .filterCard input,
+  .historyFilter,
+  .historyFilter input {
+    width: 100%;
+  }
+
+  .historyHeader {
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .historyFilter input {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .transactionItem {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .transactionRight {
+    width: 100%;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .transactionRight strong {
+    min-width: 0;
+    text-align: left;
+  }
+}
+
+@media (max-width: 650px) {
+  .statsGrid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .statCard {
+    min-height: 130px;
+  }
+}
+
+@media (max-width: 480px) {
+  .transactionRight {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .transactionActions {
+    width: 100%;
+  }
+
+  .transactionActions .editBtn,
+  .transactionActions .deleteBtn {
+    width: 50%;
+    min-width: 0;
+  }
 }
