@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
-
+import Navbar from "./components/Navbar";
 export default function Home() {
   const today = new Date().toISOString().split("T")[0];
 
@@ -265,7 +265,8 @@ export default function Home() {
 
   const historyBalance = historyIncome - historyExpense;
 
-  const topCategory = getTopCategory(filteredTransactions);
+  const categoryChartData = getCategoryChartData(filteredTransactions);
+  const topCategory = categoryChartData.length > 0 ? categoryChartData[0].category : "None";
 
   if (!user) {
     return (
@@ -335,12 +336,10 @@ export default function Home() {
 
   return (
     <main className="page">
-      <section className="topBar">
-        <p>Logged in as: {user.email}</p>
-        <button className="logoutBtn" onClick={handleLogout}>
-          Logout
-        </button>
-      </section>
+      <Navbar
+        user={user}
+        onLogout={handleLogout}
+      />
 
       <section className="hero">
         <div>
@@ -373,6 +372,48 @@ export default function Home() {
           <p>{selectedMonth ? `${formatMonth(selectedMonth)} Net` : "Net Amount"}</p>
           <h2>RM {historyBalance.toFixed(2)}</h2>
         </div>
+
+        <div className="statCard">
+          <p>Top Spending</p>
+          <h2>{topCategory}</h2>
+        </div>
+      </section>
+
+      <section className="chartCard">
+        <div className="chartHeader">
+          <div>
+            <h2>Spending by Category</h2>
+            <p>
+              {selectedMonth
+                ? `Expense breakdown for ${formatMonth(selectedMonth)}`
+                : "Expense breakdown for all transactions"}
+            </p>
+          </div>
+        </div>
+
+        {categoryChartData.length === 0 ? (
+          <p className="emptyText">No expense data to show yet.</p>
+        ) : (
+          <div className="categoryChart">
+            {categoryChartData.map((item) => (
+              <div className="categoryRow" key={item.category}>
+                <div className="categoryInfo">
+                  <span>{item.category}</span>
+                  <strong>RM {item.amount.toFixed(2)}</strong>
+                </div>
+
+                <div className="barTrack">
+                  <div
+                    className="barFill"
+                    style={{ width: `${item.percentage}%` }}
+                  ></div>
+                </div>
+
+                <p>{item.percentage.toFixed(0)}% of spending</p>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="contentGrid">
@@ -559,14 +600,10 @@ function formatMonth(monthValue) {
   });
 }
 
-function getTopCategory(transactions) {
+function getCategoryChartData(transactions) {
   const expenses = transactions.filter(
     (transaction) => transaction.type?.toLowerCase() === "expense"
   );
-
-  if (expenses.length === 0) {
-    return "None";
-  }
 
   const categoryTotals = {};
 
@@ -578,15 +615,24 @@ function getTopCategory(transactions) {
     categoryTotals[transaction.category] += Math.abs(Number(transaction.amount));
   });
 
-  let topCategory = "";
-  let highestAmount = 0;
+  const totalExpense = Object.values(categoryTotals).reduce(
+    (total, amount) => total + amount,
+    0
+  );
 
-  Object.keys(categoryTotals).forEach((category) => {
-    if (categoryTotals[category] > highestAmount) {
-      highestAmount = categoryTotals[category];
-      topCategory = category;
-    }
-  });
+  if (totalExpense === 0) {
+    return [];
+  }
 
-  return topCategory;
+  return Object.keys(categoryTotals)
+    .map((category) => {
+      const amount = categoryTotals[category];
+
+      return {
+        category,
+        amount,
+        percentage: (amount / totalExpense) * 100,
+      };
+    })
+    .sort((a, b) => b.amount - a.amount);
 }
