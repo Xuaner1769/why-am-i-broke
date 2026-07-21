@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
-
+import Navbar from "./components/Navbar";
+import TransactionHistory from "./components/TransactionHistory";
+import TransactionForm from "./components/TransactionForm";
+import DashboardCards from "./components/DashboardCards";
+import CategoryChart from "./components/CategoryChart";
+import LoginPage from "./components/LoginPage";
+import HeroCard from "./components/HeroCard";
 export default function Home() {
   const today = new Date().toISOString().split("T")[0];
 
@@ -265,285 +271,84 @@ export default function Home() {
 
   const historyBalance = historyIncome - historyExpense;
 
-  const topCategory = getTopCategory(filteredTransactions);
+  const categoryChartData = getCategoryChartData(filteredTransactions);
+  const topCategory = categoryChartData.length > 0 ? categoryChartData[0].category : "None";
 
-  if (!user) {
-    return (
-      <main className="page">
-        <section className="authWrapper">
-          <div className="authCard">
-            <p className="tag">Personal Finance Tracker</p>
-            <h1>WhyAmIBroke?</h1>
-            <p className="heroText">
-              Login to track where your money disappeared.
-            </p>
-
-            <div className="authTabs">
-              <button
-                className={authMode === "login" ? "activeTab" : ""}
-                onClick={() => setAuthMode("login")}
-              >
-                Login
-              </button>
-
-              <button
-                className={authMode === "register" ? "activeTab" : ""}
-                onClick={() => setAuthMode("register")}
-              >
-                Register
-              </button>
-            </div>
-
-            <div className="transactionForm">
-              <label>Email</label>
-              <input
-                type="email"
-                name="email"
-                placeholder="your@email.com"
-                value={authData.email}
-                onChange={handleAuthChange}
-              />
-
-              <label>Password</label>
-              <input
-                type="password"
-                name="password"
-                placeholder="Minimum 6 characters"
-                value={authData.password}
-                onChange={handleAuthChange}
-              />
-
-              {authMode === "login" ? (
-                <button type="button" className="submitBtn" onClick={handleLogin}>
-                  Login
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className="submitBtn"
-                  onClick={handleRegister}
-                >
-                  Register
-                </button>
-              )}
-            </div>
-          </div>
-        </section>
-      </main>
-    );
-  }
-
+ if (!user) {
   return (
     <main className="page">
-      <section className="topBar">
-        <p>Logged in as: {user.email}</p>
-        <button className="logoutBtn" onClick={handleLogout}>
-          Logout
-        </button>
-      </section>
-
-      <section className="hero">
-        <div>
-          <p className="tag">Personal Finance Tracker</p>
-          <h1>WhyAmIBroke?</h1>
-          <p className="heroText">
-            Track your income and spending before your wallet starts crying.
-          </p>
-        </div>
-
-        <div className="heroCard">
-          <p>All Time</p>
-          <h2>RM {overallBalance.toFixed(2)}</h2>
-          <span>Overall balance</span>
-        </div>
-      </section>
-
-      <section className="statsGrid">
-        <div className="statCard">
-          <p>{selectedMonth ? `${formatMonth(selectedMonth)} Income` : "Total Income"}</p>
-          <h2>RM {historyIncome.toFixed(2)}</h2>
-        </div>
-
-        <div className="statCard">
-          <p>{selectedMonth ? `${formatMonth(selectedMonth)} Spent` : "Total Spent"}</p>
-          <h2>RM {historyExpense.toFixed(2)}</h2>
-        </div>
-
-        <div className="statCard">
-          <p>{selectedMonth ? `${formatMonth(selectedMonth)} Net` : "Net Amount"}</p>
-          <h2>RM {historyBalance.toFixed(2)}</h2>
-        </div>
-      </section>
-
-      <section className="contentGrid">
-        <div className="formCard">
-          <h2>{editingId ? "Edit Transaction" : "Add Transaction"}</h2>
-
-          <div className="transactionForm">
-            <label>Title</label>
-            <input
-              type="text"
-              name="title"
-              placeholder="Example: McDonald's"
-              value={formData.title}
-              onChange={handleChange}
-            />
-
-            <label>Amount</label>
-            <input
-              type="number"
-              name="amount"
-              placeholder="Example: 18.50"
-              value={formData.amount}
-              onChange={handleChange}
-            />
-
-            <label>Type</label>
-            <select name="type" value={formData.type} onChange={handleChange}>
-              <option value="expense">Expense</option>
-              <option value="income">Income</option>
-            </select>
-
-            <label>Category</label>
-            <select
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-            >
-              <option value="Food">Food</option>
-              <option value="Transport">Transport</option>
-              <option value="Shopping">Shopping</option>
-              <option value="Bills">Bills</option>
-              <option value="Entertainment">Entertainment</option>
-              <option value="Salary">Salary</option>
-              <option value="Allowance">Allowance</option>
-              <option value="Other">Other</option>
-            </select>
-
-            <label>Date</label>
-            <input
-              type="date"
-              name="date"
-              value={formData.date}
-              onChange={handleChange}
-            />
-
-            <button
-              type="button"
-              className="submitBtn"
-              onClick={handleSubmit}
-              disabled={loading}
-            >
-              {loading
-                ? editingId
-                  ? "Updating..."
-                  : "Adding..."
-                : editingId
-                ? "Update Transaction"
-                : "Add Transaction"}
-            </button>
-
-            {editingId && (
-              <button
-                type="button"
-                className="cancelBtn"
-                onClick={() => {
-                  setEditingId(null);
-                  setFormData({
-                    title: "",
-                    amount: "",
-                    type: "expense",
-                    category: "Food",
-                    date: today,
-                  });
-                }}
-              >
-                Cancel Edit
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div className="historyCard">
-          <div className="historyHeader">
-            <div>
-              <h2>Transaction History</h2>
-              <p className="historySubtitle">
-                {selectedMonth
-                  ? `Showing ${formatMonth(selectedMonth)} records`
-                  : "Showing all transaction records"}
-              </p>
-            </div>
-
-            <div className="historyFilter">
-              <input
-                type="month"
-                value={selectedMonth}
-                onChange={(event) => setSelectedMonth(event.target.value)}
-              />
-
-              {selectedMonth && (
-                <button
-                  type="button"
-                  className="clearFilterBtn"
-                  onClick={() => setSelectedMonth("")}
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-          </div>
-
-          {filteredTransactions.length === 0 ? (
-            <p className="emptyText">
-              {selectedMonth
-                ? "No transactions found for this month."
-                : "No transactions yet. Add one to find out why you are broke."}
-            </p>
-          ) : (
-            <div className="transactionList">
-              {filteredTransactions.map((transaction) => (
-                <div className="transactionItem" key={transaction.id}>
-                  <div>
-                    <h3>{transaction.title}</h3>
-                    <p>
-                      {transaction.category} • {transaction.transaction_date}
-                    </p>
-                  </div>
-
-                  <div className="transactionRight">
-                    <strong
-                      className={
-                        transaction.type === "income" ? "income" : "expense"
-                      }
-                    >
-                      {transaction.type === "income" ? "+" : "-"} RM{" "}
-                      {Math.abs(Number(transaction.amount)).toFixed(2)}
-                    </strong>
-
-                    <button
-                      className="editBtn"
-                      onClick={() => startEdit(transaction)}
-                    >
-                      Edit
-                    </button>
-
-                    <button
-                      className="deleteBtn"
-                      onClick={() => deleteTransaction(transaction.id)}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
+      <LoginPage
+        authMode={authMode}
+        setAuthMode={setAuthMode}
+        authData={authData}
+        handleAuthChange={handleAuthChange}
+        handleLogin={handleLogin}
+        handleRegister={handleRegister}
+      />
     </main>
   );
 }
+  return (
+  <main className="page">
+    <Navbar
+      user={user}
+      onLogout={handleLogout}
+    />
+
+    <section className="hero">
+      <div>
+        <p className="tag">Personal Finance Tracker</p>
+
+        <h1>WhyAmIBroke?</h1>
+
+        <p className="heroText">
+          Track your income and spending before your wallet starts crying.
+        </p>
+      </div>
+
+      <HeroCard overallBalance={overallBalance} />
+    </section>
+
+    <DashboardCards
+      selectedMonth={selectedMonth}
+      formatMonth={formatMonth}
+      historyIncome={historyIncome}
+      historyExpense={historyExpense}
+      historyBalance={historyBalance}
+      topCategory={topCategory}
+    />
+
+    <CategoryChart
+      selectedMonth={selectedMonth}
+      formatMonth={formatMonth}
+      categoryChartData={categoryChartData}
+    />
+
+    <section className="contentGrid">
+      <TransactionForm
+        editingId={editingId}
+        formData={formData}
+        handleChange={handleChange}
+        handleSubmit={handleSubmit}
+        loading={loading}
+        setEditingId={setEditingId}
+        setFormData={setFormData}
+        today={today}
+      />
+
+      <TransactionHistory
+        selectedMonth={selectedMonth}
+        setSelectedMonth={setSelectedMonth}
+        filteredTransactions={filteredTransactions}
+        formatMonth={formatMonth}
+        startEdit={startEdit}
+        deleteTransaction={deleteTransaction}
+      />
+    </section>
+  </main>
+);
+}
+  
 
 function formatMonth(monthValue) {
   if (!monthValue) {
@@ -559,14 +364,10 @@ function formatMonth(monthValue) {
   });
 }
 
-function getTopCategory(transactions) {
+function getCategoryChartData(transactions) {
   const expenses = transactions.filter(
     (transaction) => transaction.type?.toLowerCase() === "expense"
   );
-
-  if (expenses.length === 0) {
-    return "None";
-  }
 
   const categoryTotals = {};
 
@@ -578,15 +379,24 @@ function getTopCategory(transactions) {
     categoryTotals[transaction.category] += Math.abs(Number(transaction.amount));
   });
 
-  let topCategory = "";
-  let highestAmount = 0;
+  const totalExpense = Object.values(categoryTotals).reduce(
+    (total, amount) => total + amount,
+    0
+  );
 
-  Object.keys(categoryTotals).forEach((category) => {
-    if (categoryTotals[category] > highestAmount) {
-      highestAmount = categoryTotals[category];
-      topCategory = category;
-    }
-  });
+  if (totalExpense === 0) {
+    return [];
+  }
 
-  return topCategory;
+  return Object.keys(categoryTotals)
+    .map((category) => {
+      const amount = categoryTotals[category];
+
+      return {
+        category,
+        amount,
+        percentage: (amount / totalExpense) * 100,
+      };
+    })
+    .sort((a, b) => b.amount - a.amount);
 }
